@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 
 
-class PositionalEncoding:
+class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
@@ -25,6 +25,7 @@ class PositionalEncoding:
     def forward(self, x):
         x = x + self.pe[: x.size(0), :]
         x = self.dropout(x)
+        return x
 
 
 class TransformerLM(nn.Module):
@@ -33,7 +34,7 @@ class TransformerLM(nn.Module):
         self.src_mask = None
         self.pos_encoder = PositionalEncoding(n_inp, dropout)
         encoder_layers = TransformerEncoderLayer(n_inp, n_head, n_hid, dropout)
-        self.transformer_encoder = TransformerEncoder(n_inp, n_head, n_hid, dropout)
+        self.transformer_encoder = TransformerEncoder(encoder_layers, n_layers)
         self.encoder = nn.Embedding(n_tokens, n_inp)
         self.n_inp = n_inp
         self.decoder = nn.Linear(n_inp, n_tokens)
@@ -48,7 +49,7 @@ class TransformerLM(nn.Module):
 
     def _generate_square_subsequent_mask(self, sz):
         # torch.triu returns the upper triangular part of a matrix
-        mask = (torch.tri(torch.ones(sz, sz)) == 1).transpose(0, 1)
+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
         mask = (
             mask.float()
             .masked_fill(mask == 0, float("-inf"))

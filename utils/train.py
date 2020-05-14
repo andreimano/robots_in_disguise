@@ -21,7 +21,7 @@ def train(
     train_bar = tqdm(range(0, train_data.size(0) - 1, bptt))
 
     for batch, i in enumerate(train_bar):
-        data, targets = get_batch(train_data, i)
+        data, targets = get_batch(train_data, i, bptt)
         optim.zero_grad()
         out = model(data)
         loss = crit(out.view(-1, n_tokens), targets)
@@ -36,7 +36,7 @@ def train(
             cur_loss = total_loss / verbose
             train_bar.set_description(
                 f"epoch:{epoch} | lr: {sched.get_lr()[0]:.3f} | loss:"
-                + f"{cur_loss}, perplexity: {math.exp(cur_loss)}"
+                + f"{cur_loss}:.3f, perplexity: {math.exp(cur_loss):.3f}"
             )
 
             total_loss = 0
